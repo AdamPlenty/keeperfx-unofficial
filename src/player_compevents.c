@@ -345,18 +345,13 @@ long computer_event_check_fighters(struct Computer2 *comp, struct ComputerEvent 
     if (comp->dungeon->fights_num <= 0) {
         return 4;
     }
-    if (!(computer_able_to_use_power(comp, PwrK_SPEEDCRTR, cevent->param1, 1) ||  computer_able_to_use_power(comp, PwrK_PROTECT, cevent->param1, 1))) {
+    if (!computer_able_to_use_power(comp, PwrK_SPEEDCRTR, cevent->param1, 1)) {
         return 4;
     }
     struct Thing *fightng;
     fightng = computer_get_creature_in_fight(comp, PwrK_SPEEDCRTR);
-    if (thing_is_invalid(fightng)) 
-    {
-        fightng = computer_get_creature_in_fight(comp, PwrK_PROTECT);
-        if (thing_is_invalid(fightng))
-        {
-            return 4;
-        }
+    if (thing_is_invalid(fightng)) {
+        return 4;
     }
     if (!create_task_magic_speed_up(comp, fightng, cevent->param1)) {
         return 4;
@@ -515,12 +510,7 @@ long computer_event_check_imps_in_danger(struct Computer2 *comp, struct Computer
         {
             if (!creature_is_being_unconscious(creatng) && !creature_affected_by_spell(creatng, SplK_Chicken))
             {
-                // Small chance to casting invisibility,on imp in battle.
-                if((ACTION_RANDOM(150) == 1) && computer_able_to_use_power(comp, PwrK_CONCEAL, 8, 1) && !thing_affected_by_spell(creatng, PwrK_CONCEAL))
-                {
-                    magic_use_available_power_on_thing(creatng->owner, PwrK_CONCEAL, 8, 0, 0, creatng);
-                }
-                else if (!creature_is_being_dropped(creatng) && can_thing_be_picked_up_by_player(creatng, dungeon->owner))
+                if (!creature_is_being_dropped(creatng) && can_thing_be_picked_up_by_player(creatng, dungeon->owner))
                 {
                     TbBool needs_help;
                     if (get_creature_health_permil(creatng) < 500)

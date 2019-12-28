@@ -73,7 +73,7 @@ const struct NamedCommand creatmodel_attributes_commands[] = {
   {"THINGSIZE",       27},
   {"PROPERTIES",      28},
   {"NAMETEXTID",      29},
-  {"FEARSOMEFACTOR",  30},
+  {"FEARNOFLEEFACTOR",30},
   {"TOKINGRECOVERY",  31},
   {NULL,               0},
   };
@@ -220,7 +220,7 @@ TbBool parse_creaturemodel_attributes_blocks(long crtr_model,char *buf,long len,
       crstat->dexterity = 0;
       crstat->fear_wounded = 12;
       crstat->fear_stronger = 10000;
-      crstat->fearsome_factor = 100;
+      crstat->fear_noflee_factor = 1;
       crstat->defense = 0;
       crstat->luck = 0;
       crstat->sleep_recovery = 1;
@@ -733,11 +733,11 @@ TbBool parse_creaturemodel_attributes_blocks(long crtr_model,char *buf,long len,
                 COMMAND_TEXT(cmd_num),block_buf,config_textname);
           }
           break;
-      case 30: // FEARSOMEFACTOR
+      case 30: // FEARNOFLEEFACTOR
           if (get_conf_parameter_single(buf,&pos,len,word_buf,sizeof(word_buf)) > 0)
           {
             k = atoi(word_buf);
-            crstat->fearsome_factor = k;
+            crstat->fear_noflee_factor = k;
             n++;
           }
           if (n < 1)

@@ -23,9 +23,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <windef.h>
+#include <winbase.h>
 #include <wingdi.h>
 #include <winuser.h>
 

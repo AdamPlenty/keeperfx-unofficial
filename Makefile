@@ -298,7 +298,7 @@ INCFLAGS =
 # code optimization and debugging flags
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
-  OPTFLAGS = -march=i686 -Og -fno-omit-frame-pointer
+  OPTFLAGS = -march=i686 -O0
   DBGFLAGS = -g -DDEBUG
 else
   # frame pointer is required for ASM code to work
@@ -306,13 +306,12 @@ else
   DBGFLAGS = 
 endif
 # linker flags
-# useful for development only: -Wl,-Map,"$(@:%.exe=%.map)"
-LINKFLAGS = -static-libgcc -static-libstdc++ -Wl,--enable-auto-import
+LINKFLAGS = -static-libgcc -static-libstdc++ -Wl,-Map,"$(@:%.exe=%.map)" -Wl,--enable-auto-import
 # logging level flags
 STLOGFLAGS = -DBFDEBUG_LEVEL=0 
 HVLOGFLAGS = -DBFDEBUG_LEVEL=10
 # compiler warning generation flags
-WARNFLAGS = -Wall -W -Wshadow -Werror=implicit-function-declaration -Wno-sign-compare -Wno-unused-parameter -Wno-strict-aliasing -Wno-unknown-pragmas
+WARNFLAGS = -Wall -Wno-sign-compare -Wno-unused-parameter -Wno-strict-aliasing -Wno-unknown-pragmas
 # disabled warnings: -Wextra -Wtype-limits
 CXXFLAGS = $(CXXINCS) -c -fmessage-length=0 $(WARNFLAGS) $(DEPFLAGS) $(OPTFLAGS) $(DBGFLAGS) $(INCFLAGS)
 CFLAGS = $(INCS) -c -fmessage-length=0 $(WARNFLAGS) $(DEPFLAGS) $(OPTFLAGS) $(DBGFLAGS) $(INCFLAGS)
@@ -371,10 +370,11 @@ heavylog: CXXFLAGS += $(HVLOGFLAGS)
 heavylog: CFLAGS += $(HVLOGFLAGS)
 heavylog: hvlog-before $(HVLOGBIN) hvlog-after
 
-# not nice but necessary for make -j to work
-$(shell $(MKDIR) bin obj/std obj/hvlog)
 std-before: libexterns
+	$(MKDIR) obj/std bin
+
 hvlog-before: libexterns
+	$(MKDIR) obj/hvlog bin
 
 docs: docsdox
 
@@ -389,9 +389,7 @@ clean-build:
 	-$(RM) $(STDOBJS) $(filter %.d,$(STDOBJS:%.o=%.d))
 	-$(RM) $(HVLOGOBJS) $(filter %.d,$(HVLOGOBJS:%.o=%.d))
 	-$(RM) $(BIN) $(BIN:%.exe=%.map)
-	-$(RM) $(BIN) $(BIN:%.exe=%.pdb)
 	-$(RM) $(HVLOGBIN) $(HVLOGBIN:%.exe=%.map)
-	-$(RM) $(HVLOGBIN) $(HVLOGBIN:%.exe=%.pdb)
 	-$(RM) bin/keeperfx.dll
 	-$(RM) $(LIBS) $(GENSRC)
 	-$(RM) res/*.ico

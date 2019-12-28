@@ -260,7 +260,6 @@ int trig_ll_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
         return 0;
     }
 
-#if __GNUC__
     asm volatile (" \
         movl    0x18+%4,%%eax\n \
         movl    4(%%ecx),%%ebx\n \
@@ -1020,7 +1019,6 @@ int trig_ll_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
          : "=S" (dummy), "=D" (dummy), "=c" (dummy), "=a" (do_render)
          : "o" (llv), "0" (opt_a), "1" (opt_b), "2" (opt_c)
          : "memory", "cc", "%ebx", "%edx");
-#endif
     memcpy(lv,&llv,sizeof(struct TrigLocals));
     return do_render;
 }
@@ -1030,7 +1028,6 @@ int trig_rl_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
     struct TrigLocals llv;
     long do_render;
     long dummy;
-#if __GNUC__
     asm volatile (" \
         movl    4(%%esi),%%eax\n \
         movl    %%eax,0x18+%4\n \
@@ -1838,7 +1835,6 @@ int trig_rl_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
         : "=S" (dummy), "=D" (dummy), "=c" (dummy), "=a" (do_render)
         : "o" (llv), "0" (opt_a), "1" (opt_b), "2" (opt_c)
         : "memory", "cc", "%ebx", "%edx");
-#endif
     memcpy(lv,&llv,sizeof(struct TrigLocals));
     return do_render;
 }
@@ -1848,7 +1844,6 @@ int trig_fb_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
     struct TrigLocals llv;
     long do_render;
     long dummy;
-#if __GNUC__
     asm volatile (" \
         movl    4(%%esi),%%eax\n \
         movl    %%eax,0x18+%4\n \
@@ -2223,7 +2218,6 @@ int trig_fb_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
         : "=S" (dummy), "=D" (dummy), "=c" (dummy), "=a" (do_render)
         : "o" (llv), "0" (opt_a), "1" (opt_b), "2" (opt_c)
         : "memory", "cc", "%ebx", "%edx");
-#endif
     memcpy(lv,&llv,sizeof(struct TrigLocals));
     return do_render;
 }
@@ -2233,7 +2227,6 @@ int trig_ft_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
     struct TrigLocals llv;
     long do_render;
     long dummy;
-#if __GNUC__
     asm volatile (" \
     \n \
         movl    4(%%esi),%%eax\n \
@@ -2609,7 +2602,6 @@ int trig_ft_start(struct TrigLocals *lv, const struct PolyPoint *opt_a, const st
         : "=S" (dummy), "=D" (dummy), "=c" (dummy), "=a" (do_render)
         : "o" (llv), "0" (opt_a), "1" (opt_b), "2" (opt_c)
         : "memory", "cc", "%ebx", "%edx");
-#endif
     memcpy(lv,&llv,sizeof(struct TrigLocals));
     return do_render;
 }
@@ -2672,7 +2664,6 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
     switch (vec_mode)
     {
     case RendVec_mode00:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x6C+%0,%%edx\n \
@@ -2731,10 +2722,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                  : "=o" (lv)
                  :
                  : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         // no break - fall to mode01
     case RendVec_mode01:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             xorl    %%ebx,%%ebx\n \
@@ -2871,10 +2860,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                  : "=o" (lv)
                  :
                  : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode02:
-#if __GNUC__
         asm volatile (" \
         render_md02:\n \
             leal    _polyscans,%%esi\n \
@@ -3077,10 +3064,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                      : "=o" (lv)
                      :
                      : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode03:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -3348,10 +3333,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode04:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             xorl    %%ebx,%%ebx\n \
@@ -3552,10 +3535,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode05:
-#if __GNUC__
         asm volatile (" \
             pushl   %%ebp\n \
             leal    _polyscans,%%esi\n \
@@ -3889,10 +3870,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode06:
-#if __GNUC__
         asm volatile (" \
             pushl   %%ebp\n \
             leal    _polyscans,%%esi\n \
@@ -4296,11 +4275,9 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode07:
     case RendVec_mode11:
-#if __GNUC__
         asm volatile (" \
             cmpb   $0x20,_vec_colour\n \
             # This is bad - the jump below leads outside this asm block...\n \
@@ -4572,10 +4549,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode08:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -4908,10 +4883,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode09:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -5259,10 +5232,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode10:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -5612,10 +5583,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode12:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -5884,10 +5853,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode13:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -6156,10 +6123,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode14:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl   0x6C+%0,%%edx\n \
@@ -6336,10 +6301,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode15:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl   0x6C+%0,%%edx\n \
@@ -6515,10 +6478,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode16:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             xor    %%edx,%%edx\n \
@@ -6800,10 +6761,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode17:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             xor    %%edx,%%edx\n \
@@ -7085,10 +7044,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode18:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -7372,10 +7329,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode19:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -7659,10 +7614,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode20:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -8069,10 +8022,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode21:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -8479,10 +8430,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode22:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -8830,10 +8779,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode23:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -9181,10 +9128,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode24:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -9655,10 +9600,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode25:
-#if __GNUC__
         asm volatile (" \
             leal    _polyscans,%%esi\n \
             movl    0x3C+%0,%%eax\n \
@@ -10129,10 +10072,8 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                 : "=o" (lv)
                 :
                 : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     case RendVec_mode26:
-#if __GNUC__
         asm volatile (" \
         pushl   %%ebp\n \
         \
@@ -10856,7 +10797,6 @@ void trig(struct PolyPoint *point_a, struct PolyPoint *point_b, struct PolyPoint
                  : "=o" (lv)
                  :
                  : "memory", "cc", "%eax", "%ebx", "%edx", "%ecx", "%edi", "%esi");
-#endif
         break;
     }
     //JUSTLOG("end");

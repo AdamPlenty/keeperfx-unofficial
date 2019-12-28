@@ -169,10 +169,14 @@ const struct MyLookup lookup[] = {
 };
 
 /******************************************************************************/
+DLLIMPORT long _DK_task_dig_to_attack(struct Computer2 *comp, struct ComputerTask *ctask);
+DLLIMPORT long _DK_task_magic_call_to_arms(struct Computer2 *comp, struct ComputerTask *ctask);
 DLLIMPORT struct Thing *_DK_find_creature_for_call_to_arms(struct Computer2 *comp, long a2);
 DLLIMPORT long _DK_count_creatures_in_call_to_arms(struct Computer2 *comp);
+DLLIMPORT long _DK_task_magic_speed_up(struct Computer2 *comp, struct ComputerTask *ctask);
 DLLIMPORT struct ComputerTask *_DK_get_free_task(struct Computer2 *comp, long basestl_y);
 DLLIMPORT int _DK_search_spiral(struct Coord3d *pos, int owner, int i3, long (*cb)(long, long, long));
+DLLIMPORT long _DK_get_corridor(struct Coord3d *mvpos, struct Coord3d * pos2, unsigned char round_directn, char plyr_idx, unsigned short slabs_dist);
 DLLIMPORT long _DK_other_build_here(struct Computer2 *comp, long a2, long round_directn, long plyr_idx, long slabs_dist);
 /******************************************************************************/
 #ifdef __cplusplus
@@ -1601,9 +1605,7 @@ short tool_dig_to_pos2_f(struct Computer2 * comp, struct ComputerDig * cdig, TbB
 {
     struct Dungeon *dungeon;
     struct SlabMap *slb;
-    struct SlabMap *slbw;
     struct Map *mapblk;
-    struct Map *mapblkw;
     MapSubtlCoord gldstl_x,gldstl_y;
     MapSubtlCoord digstl_x,digstl_y;
     MapSlabCoord digslb_x,digslb_y;
@@ -1729,49 +1731,7 @@ short tool_dig_to_pos2_f(struct Computer2 * comp, struct ComputerDig * cdig, TbB
             i = get_subtile_number_at_slab_center(digslb_x,digslb_y);
             if ((find_from_task_list(dungeon->owner, i) < 0) && (!simulation))
             {
-                // Only when the computer has enough gold to cast lvl8, will he consider casting lvl3 power, so he has some gold left.
-                if( computer_able_to_use_power(comp, PwrK_DESTRWALLS, 8, 1))
-                {
-                    mapblkw = get_map_block_at(digstl_x, digstl_y-3);
-                    slbw = get_slabmap_block(digslb_x, digslb_y-1);
-                    if(((mapblkw->flags & SlbAtFlg_Filled) >= 1) && (slabmap_owner(slbw) != dungeon->owner))
-                    {
-                        magic_use_available_power_on_subtile(dungeon->owner, PwrK_DESTRWALLS, 3, digstl_x, digstl_y-3, PwCast_Unrevealed);
-                        return -5;
-                    }
-                    else
-                    {
-                        mapblkw = get_map_block_at(digstl_x, digstl_y+3);
-                        slbw = get_slabmap_block(digslb_x, digslb_y+1);
-                        if(((mapblkw->flags & SlbAtFlg_Filled) >= 1) && (slabmap_owner(slbw) != dungeon->owner))
-                        {
-                            magic_use_available_power_on_subtile(dungeon->owner, PwrK_DESTRWALLS, 3, digstl_x, digstl_y+3, PwCast_Unrevealed);
-                            return -5;
-                        }
-                        else
-                        {
-                            mapblkw = get_map_block_at(digstl_x-3, digstl_y);
-                            slbw = get_slabmap_block(digslb_x-1, digslb_y);
-                            if(((mapblkw->flags & SlbAtFlg_Filled) >= 1) && (slabmap_owner(slbw) != dungeon->owner))
-                            {
-                                magic_use_available_power_on_subtile(dungeon->owner, PwrK_DESTRWALLS, 3, digstl_x-3, digstl_y, PwCast_Unrevealed);
-                                return -5;
-                            }
-                            else
-                            {
-                                mapblkw = get_map_block_at(digstl_x+3, digstl_y);
-                                slbw = get_slabmap_block(digslb_x+1, digslb_y);
-                                if(((mapblkw->flags & SlbAtFlg_Filled) >= 1) && (slabmap_owner(slbw) != dungeon->owner))
-                                {
-                                    magic_use_available_power_on_subtile(dungeon->owner, PwrK_DESTRWALLS, 3, digstl_x+3, digstl_y, PwCast_Unrevealed);
-                                    return -5;
-                                }
-                            }
-                        }
-                    }
-                }
-                if (try_game_action(comp, dungeon->owner, GA_MarkDig, 0, digstl_x, digstl_y, 1, 1) <= Lb_OK) 
-                {
+                if (try_game_action(comp, dungeon->owner, GA_MarkDig, 0, digstl_x, digstl_y, 1, 1) <= Lb_OK) {
                     ERRORLOG("%s: Couldn't do game action - cannot dig",func_name);
                     return -2;
                 }
@@ -2635,12 +2595,14 @@ long task_move_gold_to_treasury(struct Computer2 *comp, struct ComputerTask *cta
     }
     SYNCDBG(9,"Starting for player %d",(int)dungeon->owner);
     struct Thing *thing;
+    struct Room *room;
     struct Coord3d pos;
     long i;
+    room = INVALID_ROOM;
     thing = thing_get(comp->held_thing_idx);
     if (!thing_is_invalid(thing))
     {
-        struct Room* room = room_get(ctask->move_gold.room_idx);
+        room = room_get(ctask->move_gold.room_idx);
         if (object_is_gold(thing) && room_exists(room))
         {
             if (find_random_valid_position_for_thing_in_room(thing, room, &pos))
@@ -2786,43 +2748,38 @@ long task_magic_speed_up(struct Computer2 *comp, struct ComputerTask *ctask)
 {
     struct Dungeon *dungeon;
     struct Thing *creatng;
-    int k = 0;
     SYNCDBG(9,"Starting");
     dungeon = comp->dungeon;
+    //return _DK_task_magic_speed_up(comp,ctask);
     creatng = thing_get(ctask->attack_magic.target_thing_idx);
-    if (thing_is_invalid(creatng))
+    if (thing_is_invalid(creatng)) {
+        remove_task(comp, ctask);
+        return CTaskRet_Unk4;
+    }
+    if (creature_is_dying(creatng) || creature_is_being_unconscious(creatng)
+     || creature_is_kept_in_custody(creatng))
     {
         remove_task(comp, ctask);
         return CTaskRet_Unk4;
     }
-    if (creature_is_dying(creatng) || creature_is_being_unconscious(creatng) || creature_is_kept_in_custody(creatng))
-    {
+    // Note that can_cast_spell() shouldn't be needed here - should
+    // be checked in the function which adds the task
+    if (!computer_able_to_use_power(comp, PwrK_SPEEDCRTR, ctask->attack_magic.splevel, 2)) {
         remove_task(comp, ctask);
         return CTaskRet_Unk4;
     }
-    if (computer_able_to_use_power(comp, PwrK_SPEEDCRTR, ctask->attack_magic.splevel, 1) && !thing_affected_by_spell(creatng, PwrK_SPEEDCRTR))
-    {
-        if (try_game_action(comp, dungeon->owner, GA_UsePwrSpeedUp, ctask->attack_magic.splevel, 0, 0, ctask->attack_magic.target_thing_idx, 0) > Lb_OK)
-        {
-            k = 1;
-        }
-    } 
-    else if (computer_able_to_use_power(comp, PwrK_PROTECT, ctask->attack_magic.splevel, 1) && !thing_affected_by_spell(creatng, PwrK_PROTECT))
-    {
-        if (try_game_action(comp, dungeon->owner, GA_UsePwrArmour, ctask->attack_magic.splevel, 0, 0, ctask->attack_magic.target_thing_idx, 0) > Lb_OK)
-        {
-            k = 1;
-        }
-    }
-    if (k != 1)
-    {
+    if (thing_affected_by_spell(creatng, PwrK_SPEEDCRTR)) {
         remove_task(comp, ctask);
         return CTaskRet_Unk4;
     }
-    else
-    {
-        return CTaskRet_Unk1;
+    TbResult ret;
+    ret = try_game_action(comp, dungeon->owner, GA_UsePwrSpeedUp, ctask->attack_magic.splevel,
+        0, 0, creatng->index, 0);
+    if (ret <= Lb_OK) {
+        remove_task(comp, ctask);
+        return CTaskRet_Unk4;
     }
+    return CTaskRet_Unk1;
 }
 
 long task_wait_for_bridge(struct Computer2 *comp, struct ComputerTask *ctask)
@@ -2898,7 +2855,7 @@ long task_attack_magic(struct Computer2 *comp, struct ComputerTask *ctask)
     }
     TbResult ret;
     ret = try_game_action(comp, dungeon->owner, ctask->attack_magic.gaction, ctask->attack_magic.splevel,
-        thing->mappos.x.stl.num, thing->mappos.y.stl.num, ctask->attack_magic.target_thing_idx, 0);
+        thing->mappos.x.stl.num, thing->mappos.y.stl.num, ctask->attack_magic.pwkind, 0);
     if (ret <= Lb_OK)
         return CTaskRet_Unk4;
     return CTaskRet_Unk2;
@@ -3478,8 +3435,6 @@ TbBool create_task_slap_imps(struct Computer2 *comp, long creatrs_num)
     return true;
 }
 
-//task is named 'speed up', but it's generated from 'check fighter' event and all round buffs units. Not to be confused
-//with check_for_accelerate which cast speed outside of combat
 TbBool create_task_magic_speed_up(struct Computer2 *comp, const struct Thing *creatng, long splevel)
 {
     struct ComputerTask *ctask;
@@ -3489,7 +3444,7 @@ TbBool create_task_magic_speed_up(struct Computer2 *comp, const struct Thing *cr
         return false;
     }
     if ((gameadd.computer_chat_flags & CChat_TasksScarce) != 0) {
-        message_add_fmt(comp->dungeon->owner, "I should buff my fighters.");
+        message_add_fmt(comp->dungeon->owner, "Faster, minions!");
     }
     ctask->ttype = CTT_MagicSpeedUp;
     ctask->attack_magic.target_thing_idx = creatng->index;

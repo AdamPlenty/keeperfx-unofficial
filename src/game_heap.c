@@ -30,6 +30,18 @@
 #include "engine_render.h"
 #include "sounds.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+/******************************************************************************/
+DLLIMPORT TbFileHandle _DK_LbFileOpen(const char *fname, int mode);
+DLLIMPORT int _DK_LbFileClose(TbFileHandle handle);
+DLLIMPORT int _DK_LbFileSeek(TbFileHandle handle, long offset, int origin);
+DLLIMPORT int _DK_LbFileRead(TbFileHandle handle, void *buffer, unsigned long len);
+/******************************************************************************/
+#ifdef __cplusplus
+}
+#endif
 /******************************************************************************/
 const char *sound_fname = "sound.dat";
 const char *speech_fname = "speech.dat";
@@ -76,7 +88,8 @@ TbBool setup_heap_manager(void)
 #else
     fname = prepare_file_path(FGrp_StdData,"creature.jty");
 #endif
-    file_handle = LbFileOpen(fname, Lb_FILE_MODE_READ_ONLY);
+    //TODO CREATURE_SPRITE Use rewritten file handling when reading is rewritten
+    file_handle = _DK_LbFileOpen(fname, Lb_FILE_MODE_READ_ONLY);
     if (file_handle == -1) {
         ERRORLOG("Can not open JTY file, \"%s\"",fname);
         return false;
@@ -133,7 +146,8 @@ void reset_heap_manager(void)
     SYNCDBG(8,"Starting");
     if (file_handle != -1)
     {
-        LbFileClose(file_handle);
+        //TODO CREATURE_SPRITE Use rewritten file handling when reading is rewritten
+        _DK_LbFileClose(file_handle);
         file_handle = -1;
     }
     for (i=0; i < KEEPSPRITE_LENGTH; i++)
@@ -294,8 +308,8 @@ TbBool read_heap_item(struct HeapMgrHandle *hmhandle, long offs, long len)
         return false;
     }
     // TODO make error handling
-    LbFileSeek(file_handle, offs, 0);
-    LbFileRead(file_handle, hmhandle->buf, len);
+    _DK_LbFileSeek(file_handle, offs, 0);
+    _DK_LbFileRead(file_handle, hmhandle->buf, len);
     return true;
 }
 /******************************************************************************/

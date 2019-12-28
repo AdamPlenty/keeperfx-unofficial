@@ -26,7 +26,11 @@
 extern "C" {
 #endif
 /******************************************************************************/
+DLLIMPORT long _DK_heapmgr_free_oldest(struct HeapMgrHeader *hmhead);
 DLLIMPORT struct HeapMgrHandle *_DK_heapmgr_add_item(struct HeapMgrHeader *hmhead, long idx);
+DLLIMPORT void _DK_heapmgr_make_newest(struct HeapMgrHeader *hmhead, struct HeapMgrHandle *hmhandle);
+DLLIMPORT struct HeapMgrHeader *_DK_heapmgr_init(unsigned char *a1, long a2, long a3);
+DLLIMPORT void _DK_heapmgr_complete_defrag(struct HeapMgrHeader *hmhead);
 DLLIMPORT long _DK_heapmgr_free_handle(struct HeapMgrHeader *hmhead, struct HeapMgrHandle *hmhandle);
 /******************************************************************************/
 struct HeapMgrHandle *find_free_handle(struct HeapMgrHeader *hmhead)
@@ -127,7 +131,8 @@ void heapmgr_complete_defrag(struct HeapMgrHeader *hmhead)
     for (hmhandle = hmhead->first_alloc; hmhandle->next_alloc != NULL; hmhandle = hmhandle->next_alloc)
     {
         struct HeapMgrHandle *hnext;
-        void *bufend = (char*)hmhandle->buf + hmhandle->len;
+        void *bufend;
+        bufend = hmhandle->buf + hmhandle->len;
         hnext = hmhandle->next_alloc;
         if (hnext->buf > bufend)
         {

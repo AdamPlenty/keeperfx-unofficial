@@ -49,6 +49,13 @@ DLLIMPORT void _DK_shuffle_unattached_things_on_slab(long a1, long stl_x);
 DLLIMPORT void _DK_fill_in_reinforced_corners(unsigned char plyr_idx, unsigned char slb_x, unsigned char slb_y);
 DLLIMPORT unsigned char _DK_choose_pretty_type(unsigned char plyr_idx, unsigned char slb_x, unsigned char slb_y);
 DLLIMPORT void _DK_delete_attached_things_on_slab(long slb_x, long slb_y);
+DLLIMPORT unsigned char _DK_get_against(unsigned char a1, long stl_x, long stl_y, long col_idx);
+DLLIMPORT void _DK_place_slab_columns(long a1, unsigned char stl_x, unsigned char stl_y, short *col_idx);
+DLLIMPORT void _DK_place_slab_object(unsigned short a1, long stl_x, long stl_y, unsigned short col_idx, unsigned short slbelem, unsigned char a6);
+DLLIMPORT void _DK_copy_block_with_cube_groups(short a1, unsigned char plyr_idx, unsigned char a3);
+DLLIMPORT long _DK_tag_blocks_for_digging_in_area(long stl_x, long stl_y, signed char plyr_idx);
+DLLIMPORT void _DK_place_animating_slab_type_on_map(long a1, char ani_frame, unsigned char a3, unsigned char a4, unsigned char slbelem);
+DLLIMPORT void _DK_dump_slab_on_map(long a1, long ani_frame, unsigned char stl_x, unsigned char stl_y, unsigned char owner);
 
 const signed short slab_element_around_eight[] = {
     -3, -2, 1, 4, 3, 2, -1, -4
@@ -246,7 +253,7 @@ TbBool tag_blocks_for_digging_in_area(MapSubtlCoord stl_x, MapSubtlCoord stl_y, 
               {
                   mapblk = get_map_block_at(x+dx, y+dy);
                   slb = get_slabmap_for_subtile(x+dx, y+dy);
-                  if ((mapblk->flags & (SlbAtFlg_TaggedValuable|SlbAtFlg_Unexplored)) != 0)
+                  if ((mapblk->flags & (SlbAtFlg_Unk80|SlbAtFlg_Unk04)) != 0)
                       continue;
                   if (((mapblk->flags & SlbAtFlg_IsRoom) != 0) && (slabmap_owner(slb) == plyr_idx))
                       continue;
@@ -254,11 +261,11 @@ TbBool tag_blocks_for_digging_in_area(MapSubtlCoord stl_x, MapSubtlCoord stl_y, 
                       continue;
                   if ((mapblk->flags & SlbAtFlg_Valuable) != 0)
                   {
-                      mapblk->flags |= SlbAtFlg_TaggedValuable;
+                      mapblk->flags |= SlbAtFlg_Unk80;
                   } else
                   if (((mapblk->flags & (SlbAtFlg_Filled|SlbAtFlg_Digable)) != 0) || !map_block_revealed(mapblk, plyr_idx))
                   {
-                      mapblk->flags |= SlbAtFlg_Unexplored;
+                      mapblk->flags |= SlbAtFlg_Unk04;
                   }
               }
           }
@@ -297,10 +304,10 @@ long untag_blocks_for_digging_in_area(MapSubtlCoord stl_x, MapSubtlCoord stl_y, 
                 mapblk = get_map_block_at(x+dx, y+dy);
                 if (map_block_invalid(mapblk))
                     continue;
-                if ( mapblk->flags & (SlbAtFlg_TaggedValuable|SlbAtFlg_Unexplored) )
+                if ( mapblk->flags & (SlbAtFlg_Unk80|SlbAtFlg_Unk04) )
                   num_untagged++;
-                mapblk->flags &= ~SlbAtFlg_TaggedValuable;
-                mapblk->flags &= ~SlbAtFlg_Unexplored;
+                mapblk->flags &= ~SlbAtFlg_Unk80;
+                mapblk->flags &= ~SlbAtFlg_Unk04;
             }
         }
     }
@@ -2219,8 +2226,8 @@ void pretty_map_remove_flags_and_update(MapSlabCoord slb_x, MapSlabCoord slb_y)
         y = stl_y + (m/STL_PER_SLB);
         struct Map *mapblk;
         mapblk = get_map_block_at(x,y);
-        mapblk->flags &= ~SlbAtFlg_TaggedValuable;
-        mapblk->flags &= ~SlbAtFlg_Unexplored;
+        mapblk->flags &= ~SlbAtFlg_Unk80;
+        mapblk->flags &= ~SlbAtFlg_Unk04;
     }
     pannel_map_update(stl_x, stl_y, STL_PER_SLB, STL_PER_SLB);
 }

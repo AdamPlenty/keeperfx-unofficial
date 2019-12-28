@@ -60,13 +60,24 @@ extern "C" {
 DLLIMPORT void _DK_draw_fastview_mapwho(struct Camera *cam, struct JontySpr *outbuf);
 DLLIMPORT void _DK_draw_stripey_line(long pos_x, long pos_z, long beg_y, long end_y, unsigned char scale);
 DLLIMPORT long _DK_convert_world_coord_to_front_view_screen_coord(struct Coord3d *pos, struct Camera *cam, long *x, long *y, long *z);
+DLLIMPORT void _DK_rotate_base_axis(struct M33 *matx, short pos_z, unsigned char beg_y);
+DLLIMPORT void _DK_fill_in_points_perspective(long pos_x, long pos_z, struct MinMax *mm);
+DLLIMPORT void _DK_fill_in_points_cluedo(long pos_x, long pos_z, struct MinMax *mm);
+DLLIMPORT void _DK_fill_in_points_isometric(long pos_x, long pos_z, struct MinMax *mm);
+DLLIMPORT void _DK_find_gamut(void);
+DLLIMPORT void _DK_frame_wibble_generate(void);
+DLLIMPORT void _DK_setup_rotate_stuff(long pos_x, long pos_z, long beg_y, long end_y, long scale, long a6, long a7, long a8);
 DLLIMPORT void _DK_do_a_trig_gourad_tr(struct EngineCoord *ep1, struct EngineCoord *ep2, struct EngineCoord *ep3, short plane_end, long scale);
 DLLIMPORT void _DK_do_a_trig_gourad_bl(struct EngineCoord *ep1, struct EngineCoord *ep2, struct EngineCoord *ep3, short plane_end, long scale);
+DLLIMPORT void _DK_do_map_who(short stl_x);
+DLLIMPORT void _DK_fiddle_half_gamut(long y, long pos_y, long floor_x, long floor_y);
 DLLIMPORT long _DK_do_a_plane_of_engine_columns_sub5(struct EngineCoord *ec1, struct EngineCoord *ec2, struct EngineCoord *ec3);
 DLLIMPORT void _DK_do_a_gpoly_gourad_tr(struct EngineCoord *ec1, struct EngineCoord *ec2, struct EngineCoord *ec3, short plane_end, int a5);
 DLLIMPORT void _DK_do_a_gpoly_unlit_tr(struct EngineCoord *ec1, struct EngineCoord *ec2, struct EngineCoord *ec3, short plane_end);
 DLLIMPORT void _DK_do_a_gpoly_unlit_bl(struct EngineCoord *ec1, struct EngineCoord *ec2, struct EngineCoord *ec3, short plane_end);
 DLLIMPORT void _DK_do_a_gpoly_gourad_bl(struct EngineCoord *ec1, struct EngineCoord *ec2, struct EngineCoord *ec3, short plane_end, int a5);
+DLLIMPORT long _DK_find_closest_lights(struct Coord3d *pos, struct NearestLights *nlgt);
+DLLIMPORT void _DK_create_shadows(struct Thing *thing, struct EngineCoord *ecor, struct Coord3d *pos);
 DLLIMPORT void _DK_create_status_box(struct Thing *thing, struct EngineCoord *ecor);
 /******************************************************************************/
 unsigned short shield_offset[] = {
@@ -2560,7 +2571,7 @@ void do_a_plane_of_engine_columns_cluedo(long stl_x, long stl_y, long plane_star
         {
             int ncor_raw;
             ncor_raw = floor_height[solidmsk_cur_raw];
-            if ((cur_mapblk->flags & (SlbAtFlg_TaggedValuable|SlbAtFlg_Unexplored)) == 0)
+            if ((cur_mapblk->flags & (SlbAtFlg_Unk80|SlbAtFlg_Unk04)) == 0)
             {
                 if ((ncor_raw > 0) && (ncor_raw <= COLUMN_STACK_HEIGHT))
                 {
@@ -2581,7 +2592,7 @@ void do_a_plane_of_engine_columns_cluedo(long stl_x, long stl_y, long plane_star
             }
         } else
         {
-            if ((cur_mapblk->flags & SlbAtFlg_Unexplored) == 0)
+            if ((cur_mapblk->flags & SlbAtFlg_Unk04) == 0)
             {
                 do_a_gpoly_gourad_tr(&bec[0].cors[0], &bec[1].cors[0], &fec[1].cors[0], cur_colmn->baseblock, -1);
                 do_a_gpoly_gourad_bl(&fec[1].cors[0], &fec[0].cors[0], &bec[0].cors[0], cur_colmn->baseblock, -1);
@@ -2733,7 +2744,7 @@ void do_a_plane_of_engine_columns_isometric(long stl_x, long stl_y, long plane_s
         ncor = floor_height[solidmsk_cur];
         if (ncor > 0)
         {
-            if ((cur_mapblk->flags & (SlbAtFlg_TaggedValuable|SlbAtFlg_Unexplored)) == 0)
+            if ((cur_mapblk->flags & (SlbAtFlg_Unk80|SlbAtFlg_Unk04)) == 0)
             {
                 struct CubeAttribs * cubed;
                 cubed = &game.cubes_data[*(short *)((char *)&cur_colmn->baseblock + 2 * ncor + 1)];
@@ -2751,7 +2762,7 @@ void do_a_plane_of_engine_columns_isometric(long stl_x, long stl_y, long plane_s
             }
         } else
         {
-            if ((cur_mapblk->flags & SlbAtFlg_Unexplored) == 0)
+            if ((cur_mapblk->flags & SlbAtFlg_Unk04) == 0)
             {
                 do_a_gpoly_gourad_tr(&bec[0].cors[0], &bec[1].cors[0], &fec[1].cors[0], cur_colmn->baseblock, -1);
                 do_a_gpoly_gourad_bl(&fec[1].cors[0], &fec[0].cors[0], &bec[0].cors[0], cur_colmn->baseblock, -1);
@@ -4755,7 +4766,7 @@ void draw_element(struct Map *map, long lightness, long stl_x, long stl_y, long 
       if ((col->baseblock != 0) && (col->cubes[0] == 0))
       {
           *ymax = pos_y;
-          if ((mapblk->flags & SlbAtFlg_Unexplored) != 0)
+          if ((mapblk->flags & SlbAtFlg_Unk04) != 0)
           {
               add_textruredquad_to_polypool(pos_x, pos_y, col->baseblock, a7, 0,
                   2097152, 0, bckt_idx);
@@ -4791,12 +4802,12 @@ void draw_element(struct Map *map, long lightness, long stl_x, long stl_y, long 
       if (*ymax > i)
       {
         *ymax = i;
-        if ((mapblk->flags & SlbAtFlg_TaggedValuable) != 0)
+        if ((mapblk->flags & SlbAtFlg_Unk80) != 0)
         {
           add_textruredquad_to_polypool(pos_x, i, unkstrcp->texture_id[4], a7, a8,
               2097152, 1, bckt_idx);
         } else
-        if ((mapblk->flags & SlbAtFlg_Unexplored) != 0)
+        if ((mapblk->flags & SlbAtFlg_Unk04) != 0)
         {
           add_textruredquad_to_polypool(pos_x, i, unkstrcp->texture_id[4], a7, a8,
               2097152, 0, bckt_idx);

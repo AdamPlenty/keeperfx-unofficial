@@ -739,10 +739,9 @@ TbBool update_screen_mode_data(long width, long height)
   {
     pixel_size = 2;
   }
-  long psize = pixel_size;
-  MyScreenWidth = width * psize;
-  MyScreenHeight = height * psize;
-  pixels_per_block = 16 * psize;
+  MyScreenWidth = width * (long)pixel_size;
+  MyScreenHeight = height * (long)pixel_size;
+  pixels_per_block = 16 * (long)pixel_size;
   units_per_pixel = (width>height?width:height)/40;// originally was 16 for hires, 8 for lores
   units_per_pixel_min = (width>height?height:width)/40;// originally 10 for hires
   if (MinimalResolutionSetup)

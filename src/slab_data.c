@@ -38,6 +38,8 @@ const short around_slab[] = {-86, -85, -84,  -1,   0,   1,  84,  85,  86};
 const short small_around_slab[] = {-85,   1,  85,  -1};
 struct SlabMap bad_slabmap_block;
 /******************************************************************************/
+DLLIMPORT long _DK_calculate_effeciency_score_for_room_slab(long a1, long keep_plyr_idx);
+DLLIMPORT void _DK_unfill_reinforced_corners(unsigned char keep_plyr_idx, unsigned char base_slb_x, unsigned char base_slb_y);
 /******************************************************************************/
 /**
  * Returns slab number, which stores both X and Y coords in one number.
@@ -473,7 +475,7 @@ void update_map_collide(SlabKind slbkind, MapSubtlCoord stl_x, MapSubtlCoord stl
     } else {
       nflags = slbattr->noblck_flags;
     }
-    mapblk->flags &= (SlbAtFlg_TaggedValuable|SlbAtFlg_Unexplored);
+    mapblk->flags &= (SlbAtFlg_Unk80|SlbAtFlg_Unk04);
     mapblk->flags |= nflags;
 }
 
