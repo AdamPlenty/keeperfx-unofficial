@@ -2560,7 +2560,7 @@ void do_a_plane_of_engine_columns_cluedo(long stl_x, long stl_y, long plane_star
         {
             int ncor_raw;
             ncor_raw = floor_height[solidmsk_cur_raw];
-            if ((cur_mapblk->flags & (SlbAtFlg_TaggedValuable|SlbAtFlg_Unexplored)) == 0)
+            if ((cur_mapblk->flags & (SlbAtFlg_Unk80|SlbAtFlg_Unk04)) == 0)
             {
                 if ((ncor_raw > 0) && (ncor_raw <= COLUMN_STACK_HEIGHT))
                 {
@@ -2581,7 +2581,7 @@ void do_a_plane_of_engine_columns_cluedo(long stl_x, long stl_y, long plane_star
             }
         } else
         {
-            if ((cur_mapblk->flags & SlbAtFlg_Unexplored) == 0)
+            if ((cur_mapblk->flags & SlbAtFlg_Unk04) == 0)
             {
                 do_a_gpoly_gourad_tr(&bec[0].cors[0], &bec[1].cors[0], &fec[1].cors[0], cur_colmn->baseblock, -1);
                 do_a_gpoly_gourad_bl(&fec[1].cors[0], &fec[0].cors[0], &bec[0].cors[0], cur_colmn->baseblock, -1);
@@ -2733,7 +2733,7 @@ void do_a_plane_of_engine_columns_isometric(long stl_x, long stl_y, long plane_s
         ncor = floor_height[solidmsk_cur];
         if (ncor > 0)
         {
-            if ((cur_mapblk->flags & (SlbAtFlg_TaggedValuable|SlbAtFlg_Unexplored)) == 0)
+            if ((cur_mapblk->flags & (SlbAtFlg_Unk80|SlbAtFlg_Unk04)) == 0)
             {
                 struct CubeAttribs * cubed;
                 cubed = &game.cubes_data[*(short *)((char *)&cur_colmn->baseblock + 2 * ncor + 1)];
@@ -2751,7 +2751,7 @@ void do_a_plane_of_engine_columns_isometric(long stl_x, long stl_y, long plane_s
             }
         } else
         {
-            if ((cur_mapblk->flags & SlbAtFlg_Unexplored) == 0)
+            if ((cur_mapblk->flags & SlbAtFlg_Unk04) == 0)
             {
                 do_a_gpoly_gourad_tr(&bec[0].cors[0], &bec[1].cors[0], &fec[1].cors[0], cur_colmn->baseblock, -1);
                 do_a_gpoly_gourad_bl(&fec[1].cors[0], &fec[0].cors[0], &bec[0].cors[0], cur_colmn->baseblock, -1);
@@ -4755,7 +4755,7 @@ void draw_element(struct Map *map, long lightness, long stl_x, long stl_y, long 
       if ((col->baseblock != 0) && (col->cubes[0] == 0))
       {
           *ymax = pos_y;
-          if ((mapblk->flags & SlbAtFlg_Unexplored) != 0)
+          if ((mapblk->flags & SlbAtFlg_Unk04) != 0)
           {
               add_textruredquad_to_polypool(pos_x, pos_y, col->baseblock, a7, 0,
                   2097152, 0, bckt_idx);
@@ -4791,12 +4791,12 @@ void draw_element(struct Map *map, long lightness, long stl_x, long stl_y, long 
       if (*ymax > i)
       {
         *ymax = i;
-        if ((mapblk->flags & SlbAtFlg_TaggedValuable) != 0)
+        if ((mapblk->flags & SlbAtFlg_Unk80) != 0)
         {
           add_textruredquad_to_polypool(pos_x, i, unkstrcp->texture_id[4], a7, a8,
               2097152, 1, bckt_idx);
         } else
-        if ((mapblk->flags & SlbAtFlg_Unexplored) != 0)
+        if ((mapblk->flags & SlbAtFlg_Unk04) != 0)
         {
           add_textruredquad_to_polypool(pos_x, i, unkstrcp->texture_id[4], a7, a8,
               2097152, 0, bckt_idx);

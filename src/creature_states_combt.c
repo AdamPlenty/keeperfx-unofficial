@@ -76,35 +76,35 @@ const CombatState combat_door_state[] = {
 };
 
 const struct CombatWeapon ranged_offensive_weapon[] = {
-    {CrInst_FREEZE,                 156, LONG_MAX},
-    {CrInst_FEAR,                   156, LONG_MAX},
-    {CrInst_CAST_SPELL_DISEASE,     156, LONG_MAX},
-    {CrInst_CAST_SPELL_CHICKEN,     156, LONG_MAX},
-    {CrInst_CAST_SPELL_TIME_BOMB,   768, LONG_MAX},
-    {CrInst_FIRE_BOMB,              768, LONG_MAX},
-    {CrInst_LIGHTNING,              768, LONG_MAX},
-    {CrInst_HAILSTORM,              156, LONG_MAX},
-    {CrInst_POISON_CLOUD,           156, LONG_MAX},
-    {CrInst_DRAIN,                  156, LONG_MAX},
-    {CrInst_SLOW,                   156, LONG_MAX},
-    {CrInst_NAVIGATING_MISSILE,     156, LONG_MAX},
-    {CrInst_MISSILE,                156, LONG_MAX},
-    {CrInst_FIREBALL,               156, LONG_MAX},
-    {CrInst_FIRE_ARROW,             156, LONG_MAX},
-    {CrInst_WORD_OF_POWER,            0, 284},
-    {CrInst_FART,                     0, 284},
-    {CrInst_FLAME_BREATH,           156, 284},
-    {CrInst_SWING_WEAPON_SWORD,       0, 284},
-    {CrInst_SWING_WEAPON_FIST,        0, 284},
-    {CrInst_NULL,                     0,   0},
+    {CrInst_FREEZE,            156, LONG_MAX},
+	{CrInst_FEAR,              156, LONG_MAX},
+	{CrInst_CAST_SPELL_DISEASE,	 	156, LONG_MAX},
+	{CrInst_CAST_SPELL_CHICKEN,	 	156, LONG_MAX},
+	{CrInst_CAST_SPELL_TIME_BOMB,	768, LONG_MAX},
+    {CrInst_FIRE_BOMB,         768, LONG_MAX},
+    {CrInst_LIGHTNING,         768, LONG_MAX},
+    {CrInst_HAILSTORM,         156, LONG_MAX},
+    {CrInst_POISON_CLOUD,      156, LONG_MAX},
+    {CrInst_DRAIN,             156, LONG_MAX},
+    {CrInst_SLOW,              156, LONG_MAX},
+    {CrInst_NAVIGATING_MISSILE,156, LONG_MAX},
+    {CrInst_MISSILE,           156, LONG_MAX},
+    {CrInst_FIREBALL,          156, LONG_MAX},
+    {CrInst_FIRE_ARROW,        156, LONG_MAX},
+    {CrInst_WORD_OF_POWER,       0, 284},
+    {CrInst_FART,                0, 284},
+    {CrInst_FLAME_BREATH,      156, 284},
+    {CrInst_SWING_WEAPON_SWORD,  0, 284},
+    {CrInst_SWING_WEAPON_FIST,   0, 284},
+    {CrInst_NULL,                0,   0},
 };
 
 const struct CombatWeapon melee_offensive_weapon[] = {
     {CrInst_HAILSTORM,         156, LONG_MAX},
     {CrInst_FREEZE,            156, LONG_MAX},
-    {CrInst_FEAR,              156, LONG_MAX},
-    {CrInst_CAST_SPELL_DISEASE,156, LONG_MAX},
-    {CrInst_CAST_SPELL_CHICKEN,156, LONG_MAX},
+	{CrInst_FEAR,              156, LONG_MAX},
+	{CrInst_CAST_SPELL_DISEASE,	 156, LONG_MAX},
+	{CrInst_CAST_SPELL_CHICKEN,	 156, LONG_MAX},
     {CrInst_SLOW,              156, LONG_MAX},
     {CrInst_WORD_OF_POWER,       0, 284},
     {CrInst_FART,                0, 284},
@@ -299,8 +299,6 @@ TbBool creature_is_actually_scared(const struct Thing *creatng, const struct Thi
 {
     struct CreatureStats *crstat;
     crstat = creature_stats_get_from_thing(creatng);
-    struct CreatureStats *enmstat;
-    enmstat = creature_stats_get_from_thing(enmtng);
     // Neutral creatures are not easily scared, as they shouldn't have enemies
     if (is_neutral_thing(creatng))
         return false;
@@ -318,7 +316,8 @@ TbBool creature_is_actually_scared(const struct Thing *creatng, const struct Thi
     // fear_wounded percent of base health
     HitPoints crmaxhealth,enmaxhealth;
     long fear;
-    if (player_creature_tends_to(creatng->owner,CrTend_Flee)) {
+    //TODO: Remove feer_noflee_factor as allowing creatures to retreat on low health should not cause them to be more fearfull.
+	if (player_creature_tends_to(creatng->owner,CrTend_Flee) || (crstat->fear_noflee_factor <= 0)) {
         // In flee mode, use full fear value
         fear = crstat->fear_wounded * 10;
     } else {
@@ -337,12 +336,17 @@ TbBool creature_is_actually_scared(const struct Thing *creatng, const struct Thi
     }
     // If the enemy is way stronger, a creature may be scared anyway
     long long enmstrength,ownstrength;
-    fear = crstat->fear_stronger;
-    enmstrength = LbSqrL(project_melee_damage(enmtng)) * (enmstat->fearsome_factor)/100 * ((long long)enmaxhealth + (long long)enmtng->health)/2;
-    ownstrength = LbSqrL(project_melee_damage(creatng)) * (crstat->fearsome_factor)/100 * ((long long)crmaxhealth + (long long)creatng->health)/2;
+    if (player_creature_tends_to(creatng->owner,CrTend_Flee) || (crstat->fear_noflee_factor <= 0)) {
+        fear = crstat->fear_stronger;
+    } else {
+        fear = (long)crstat->fear_stronger * crstat->fear_noflee_factor;
+    }
+    enmstrength = LbSqrL(calculate_melee_damage(enmtng)) * ((long long)enmaxhealth + (long long)enmtng->health)/2;
+    ownstrength = LbSqrL(calculate_melee_damage(creatng)) * ((long long)crmaxhealth + (long long)creatng->health)/2;
     if (enmstrength >= (fear * ownstrength) / 100)
     {
-        // check if there are allied creatures nearby; assume that such creatures are multiplying strength of the creature we're checking
+        // TODO: Base fear on score, not strenght as that causes issues with fearfull spellcasters.
+		// check if there are allied creatures nearby; assume that such creatures are multiplying strength of the creature we're checking
         long support_count;
         support_count = count_creatures_near_and_owned_by_or_allied_with(creatng->mappos.x.val, creatng->mappos.y.val, 9, creatng->owner);
         ownstrength *= support_count;
@@ -1353,6 +1357,7 @@ short cleanup_door_combat(struct Thing *thing)
     cctrl->combat_flags &= ~CmbtF_DoorFight;
     cctrl->combat.battle_enemy_idx = 0;
     return 1;
+
 }
 
 short cleanup_object_combat(struct Thing *thing)

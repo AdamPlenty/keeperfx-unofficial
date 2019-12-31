@@ -1430,8 +1430,8 @@ void reinit_tagged_blocks_for_player(PlayerNumber plyr_idx)
         {
             struct Map *mapblk;
             mapblk = get_map_block_at(stl_x, stl_y);
-            mapblk->flags &= ~SlbAtFlg_Unexplored;
-            mapblk->flags &= ~SlbAtFlg_TaggedValuable;
+            mapblk->flags &= ~SlbAtFlg_Unk04;
+            mapblk->flags &= ~SlbAtFlg_Unk80;
         }
     }
     // Reinit with data from current players dungeon
@@ -1454,7 +1454,7 @@ void reinit_tagged_blocks_for_player(PlayerNumber plyr_idx)
                 {
                     struct Map *mapblk;
                     mapblk = get_map_block_at(stl_x, stl_y);
-                    mapblk->flags |= SlbAtFlg_TaggedValuable;
+                    mapblk->flags |= SlbAtFlg_Unk80;
                 }
             }
             break;
@@ -1466,7 +1466,7 @@ void reinit_tagged_blocks_for_player(PlayerNumber plyr_idx)
                 {
                     struct Map *mapblk;
                     mapblk = get_map_block_at(stl_x, stl_y);
-                    mapblk->flags |= SlbAtFlg_Unexplored;
+                    mapblk->flags |= SlbAtFlg_Unk04;
                 }
             }
             break;

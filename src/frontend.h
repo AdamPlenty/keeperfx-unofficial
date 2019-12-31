@@ -83,7 +83,6 @@ enum FrontendMenuStates {
   FeSt_LEVEL_SELECT,
   FeSt_CAMPAIGN_SELECT,
   FeSt_DRAG,
-  FeSt_CAMPAIGN_INTRO,
   // Special testing states
   FeSt_FONT_TEST          = 255,
 };

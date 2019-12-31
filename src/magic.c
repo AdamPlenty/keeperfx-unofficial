@@ -878,7 +878,7 @@ TbResult magic_use_power_armageddon(PlayerNumber plyr_idx, unsigned long mod_fla
 }
 
 /**
- * Starts and stops the use of Must obey.
+ * Starts and stops the use of Must bey.
  * What differs this power from others is that it is a toggle - pressing once
  * starts the power, and second press disables it.
  * The spell is paid for somewhere else - it takes money every few turns when active.
@@ -1492,7 +1492,7 @@ TbBool update_creature_influenced_by_call_to_arms_at_pos(struct Thing *creatng, 
 {
     struct CreatureControl *cctrl;
     cctrl = creature_control_get_from_thing(creatng);
-    if (!creature_can_navigate_to_with_storage(creatng, cta_pos, NavRtF_Default) || process_creature_needs_to_heal_critical(creatng) || (creatng->continue_state == CrSt_CreatureCombatFlee))
+    if (!creature_can_navigate_to_with_storage(creatng, cta_pos, NavRtF_Default))
     {
         creature_stop_affected_by_call_to_arms(creatng);
         return false;

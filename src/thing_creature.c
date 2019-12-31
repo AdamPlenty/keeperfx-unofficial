@@ -2650,22 +2650,6 @@ long calculate_melee_damage(const struct Thing *creatng)
 }
 
 /**
- * Projects damage made by a creature by hand (using strength).
- * Gives a best estimate of the damage, but shouldn't be used to actually inflict it.
- * @param thing The creature which will be inflicting the damage.
- */
-long project_melee_damage(const struct Thing *creatng)
-{
-    const struct CreatureControl *cctrl;
-    const struct CreatureStats *crstat;
-    cctrl = creature_control_get_from_thing(creatng);
-    crstat = creature_stats_get_from_thing(creatng);
-    long strength;
-    strength = compute_creature_max_strength(crstat->strength,cctrl->explevel);
-    return project_creature_attack_melee_damage(strength, crstat->luck, cctrl->explevel);
-}
-
-/**
  * Calculates damage made by a creature using specific shot model.
  * @param thing The creature which will be shooting.
  * @param shot_model Shot kind which will be created.
@@ -3512,40 +3496,6 @@ TbBool creature_increase_level(struct Thing *thing)
           cctrl->spell_flags |= CSAfF_ExpLevelUp;
           return true;
       }
-  }
-  return false;
-}
-
-TbBool creature_increase_multiple_levels(struct Thing *thing, int count)
-{
-  struct Dungeon *dungeon;
-  struct CreatureStats *crstat;
-  struct CreatureControl *cctrl;
-  cctrl = creature_control_get_from_thing(thing);
-  if (creature_control_invalid(cctrl))
-  {
-      ERRORLOG("Invalid creature control; no action");
-      return false;
-  }
-  dungeon = get_dungeon(thing->owner);
-  int i;
-  int k = 0;
-  for (i=0; i < count; i++)
-  {
-    if (dungeon->creature_max_level[thing->model] > cctrl->explevel)
-    {
-      crstat = creature_stats_get_from_thing(thing);
-      if ((cctrl->explevel < CREATURE_MAX_LEVEL-1) || (crstat->grow_up != 0))
-      {
-        cctrl->spell_flags |= CSAfF_ExpLevelUp;
-        update_creature_levels(thing);
-        k++;
-      }
-    }
-  }
-  if (k > 0)
-  {
-      return true;
   }
   return false;
 }
@@ -4488,45 +4438,26 @@ long player_list_creature_filter_needs_to_be_placed_in_room_for_job(const struct
         }
     }
 
-    // If the creature require healing, then drop it to lair. When in combat, try to cast heal first.
-    if (cctrl->combat_flags)
+    // If the creature require healing, then drop it to lair
+    if (creature_can_do_healing_sleep(thing))
     {
-        // Simplified algorithm when creature is in combat
-        if (health_permil < 1000*crstat->heal_threshold/256)
+        if (cctrl->combat_flags)
         {
-            // If already at lair, then don't do anything
-            if (!creature_is_doing_lair_activity(thing))
+            // Simplified algorithm when creature is in combat
+            if (health_permil < 1000*crstat->heal_threshold/256)
             {
-                // cast heal if we can, don't always use max level to appear lifelike
-                int splevel;
-                splevel = ACTION_RANDOM(4)+5;
-                if (computer_able_to_use_power(comp, PwrK_HEALCRTR, splevel, 1))
-                {
-                    if (try_game_action(comp, dungeon->owner, GA_UsePwrHealCrtr, splevel, thing->mappos.x.stl.num, thing->mappos.y.stl.num, thing->index, 1) > Lb_OK)
-                    {
-                        return LONG_MAX;
-                    } else
-                    {
-                        return -1;
-                    }
-                } else
+                // If already at lair, then don't do anything
+                if (creature_is_doing_lair_activity(thing))
+                    return -1;
                 // otherwise, put it into room we want
+                if (player_has_room_of_role(dungeon->owner, get_room_role_for_job(Job_TAKE_SLEEP)))
                 {
-                    if (creature_can_do_healing_sleep(thing))
-                    {
-                        if (player_has_room_of_role(dungeon->owner, get_room_role_for_job(Job_TAKE_SLEEP)))
-                        {
-                            param->num2 = Job_TAKE_SLEEP;
-                            return LONG_MAX;
-                        }
-                    }
+                    param->num2 = Job_TAKE_SLEEP;
+                    return LONG_MAX;
                 }
             }
-        }
-        return -1;
-    } else
-    {
-        if (creature_can_do_healing_sleep(thing))
+            return -1;
+        } else
         {
             // Be more careful when not in combat
             if ((health_permil < 1000*crstat->heal_threshold/256) || !creature_has_lair_room(thing))

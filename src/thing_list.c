@@ -2036,55 +2036,16 @@ long count_player_list_creatures_of_model(long thing_idx, ThingModel crmodel)
         struct CreatureControl *cctrl;
         struct Thing *thing;
         thing = thing_get(i);
-        cctrl = creature_control_get_from_thing(thing);
         if (thing_is_invalid(thing))
         {
           ERRORLOG("Jump to invalid thing detected");
           break;
         }
+        cctrl = creature_control_get_from_thing(thing);
         i = cctrl->players_next_creature_idx;
         // Per creature code
         if ((crmodel <= 0) || (thing->model == crmodel))
-        {
             count++;
-        }
-        // Per creature code ends
-        k++;
-        if (k > THINGS_COUNT)
-        {
-            ERRORLOG("Infinite loop detected when sweeping things list");
-            break;
-        }
-    }
-    return count;
-}
-
-long count_player_list_creatures_of_model_on_territory(long thing_idx, ThingModel crmodel, int friendly)
-{
-    unsigned long k;
-    long i;
-    int count,slbwnr;
-    count = 0;
-    i = thing_idx;
-    k = 0;
-    while (i != 0)
-    {
-        struct CreatureControl *cctrl;
-        struct Thing *thing;
-        thing = thing_get(i);
-        cctrl = creature_control_get_from_thing(thing);
-        if (thing_is_invalid(thing))
-        {
-          ERRORLOG("Jump to invalid thing detected");
-          break;
-        }
-        i = cctrl->players_next_creature_idx;
-        // Per creature code
-        slbwnr = get_slab_owner_thing_is_on(thing);
-        if ( (thing->model == crmodel) && ( (players_are_enemies(thing->owner,slbwnr) && (friendly == 0)) || (players_are_mutual_allies(thing->owner,slbwnr) && (friendly == 1)) ) )
-        {
-            count++;
-        }
         // Per creature code ends
         k++;
         if (k > THINGS_COUNT)
@@ -2123,7 +2084,7 @@ struct Thing *get_player_list_nth_creature_of_model(long thing_idx, ThingModel c
       cctrl = creature_control_get_from_thing(thing);
       i = cctrl->players_next_creature_idx;
       // Per creature code
-      if ((crtr_idx <= 0) || (thing->model == crmodel && crtr_idx <= 1))
+      if (crtr_idx <= 0)
           return thing;
       if ((crmodel <= 0) || (thing->model == crmodel))
           crtr_idx--;
@@ -2252,60 +2213,12 @@ struct Thing *get_random_players_creature_of_model(PlayerNumber plyr_idx, ThingM
 {
     struct Dungeon *dungeon;
     long total_count,crtr_idx;
-    TbBool is_spec_digger;
-    is_spec_digger = ((crmodel > 0) && creature_kind_is_for_dungeon_diggers_list(plyr_idx, crmodel));
     dungeon = get_players_num_dungeon(plyr_idx);
-    if (is_spec_digger)
-    {
-        total_count = count_player_list_creatures_of_model(dungeon->digger_list_start, crmodel);
-    }
-    else
-    {
-        total_count = count_player_list_creatures_of_model(dungeon->creatr_list_start, crmodel);
-    }
+    total_count = count_player_list_creatures_of_model(dungeon->creatr_list_start, crmodel);
     if (total_count < 1)
-    {
         return INVALID_THING;
-    }
-    crtr_idx = ACTION_RANDOM(total_count)+1;
-    if (is_spec_digger)
-    {
-        return get_player_list_nth_creature_of_model(dungeon->digger_list_start, crmodel, crtr_idx);
-    }
-    else
-    {
-        return get_player_list_nth_creature_of_model(dungeon->creatr_list_start, crmodel, crtr_idx);
-    }
-}
-
-struct Thing *get_random_players_creature_of_model_on_territory(PlayerNumber plyr_idx, ThingModel crmodel, int friendly)
-{
-    struct Dungeon *dungeon;
-    long total_count,crtr_idx;
-    TbBool is_spec_digger;
-    is_spec_digger = ((crmodel > 0) && creature_kind_is_for_dungeon_diggers_list(plyr_idx, crmodel));
-    dungeon = get_players_num_dungeon(plyr_idx);
-    if (is_spec_digger)
-    {
-        total_count = count_player_list_creatures_of_model_on_territory(dungeon->digger_list_start, crmodel, friendly);
-    }
-    else
-    {
-        total_count = count_player_list_creatures_of_model_on_territory(dungeon->creatr_list_start, crmodel, friendly);
-    }
-    if (total_count < 1)
-    {
-      return INVALID_THING;
-    }
-    crtr_idx = ACTION_RANDOM(total_count)+1;
-    if (is_spec_digger)
-    {
-        return get_player_list_nth_creature_of_model_on_territory(dungeon->digger_list_start, crmodel, crtr_idx, friendly);
-    }
-    else
-    {
-        return get_player_list_nth_creature_of_model_on_territory(dungeon->creatr_list_start, crmodel, crtr_idx, friendly);
-    }
+    crtr_idx = ACTION_RANDOM(total_count);
+    return get_player_list_nth_creature_of_model(dungeon->creatr_list_start, crmodel, crtr_idx);
 }
 
 /**

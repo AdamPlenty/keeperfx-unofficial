@@ -144,13 +144,12 @@ TbBool campaign_intro(void)
 {
     if (campaign.movie_intro_fname[0] == '\0') {
         SYNCDBG(0,"No intro movie defined");
-        frontend_set_state(FeSt_LAND_VIEW);
         return 0;
     }
     char *fname;
     fname = prepare_file_path(FGrp_CmpgMedia, campaign.movie_intro_fname);
     SYNCDBG(0,"Playing intro movie \"%s\"",fname);
-    return play_smacker_file(fname, FeSt_LAND_VIEW);
+    return play_smacker_file(fname, -2);
 }
 
 TbBool campaign_outro(void)

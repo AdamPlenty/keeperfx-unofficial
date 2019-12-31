@@ -166,10 +166,6 @@ struct NetLevelDesc { // sizeof = 14
   char *text;
 };
 
-extern unsigned short AtmosRepeat;
-extern unsigned short AtmosStart;
-extern unsigned short AtmosEnd;
-
 /******************************************************************************/
 DLLIMPORT extern float _DK_phase_of_moon;
 #define phase_of_moon _DK_phase_of_moon
