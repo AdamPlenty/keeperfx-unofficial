@@ -3856,6 +3856,7 @@ TbBool tag_cursor_blocks_sell_area(PlayerNumber plyr_idx, MapSubtlCoord stl_x, M
     signed int parl;
     TbBool allowed = false;
     long dist = radius * 3;
+    BoxSubtile = Subtile;
     if (!subtile_revealed(stl_x, stl_y, plyr_idx)
         || ((slbattr->block_flags & (SlbAtFlg_Filled|SlbAtFlg_Digable|SlbAtFlg_Valuable)) != 0))
     {
