@@ -146,7 +146,6 @@ static unsigned long render_problems;
 static long render_prob_kind;
 static long sp_x, sp_y, sp_dx, sp_dy;
 
-TbBool BoxSubtile = false;
 /******************************************************************************/
 #ifdef __cplusplus
 }
@@ -6049,8 +6048,8 @@ void create_frontview_map_volume_box(struct Camera *cam, unsigned char stl_width
     orient = ((unsigned int)(cam->orient_a + LbFPMath_PI/4) >> 9) & 0x03;
     convert_world_coord_to_front_view_screen_coord(&pos, cam, &coord_x, &coord_y, &coord_z);
     depth = (5 - map_volume_box.field_13) * ((long)stl_width << 7) / 256;
-    box_width = BoxSubtile ? 1 : ((short)(map_volume_box.end_x >> 8) - (short)(map_volume_box.beg_x >> 8)) / 3;
-    box_height = BoxSubtile ? 1 : ((short)(map_volume_box.end_y >> 8) - (short)(map_volume_box.beg_y >> 8)) / 3;
+    box_width = max(1,((short)(map_volume_box.end_x >> 8) - (short)(map_volume_box.beg_x >> 8)) / 3);
+    box_height = max(1,((short)(map_volume_box.end_y >> 8) - (short)(map_volume_box.beg_y >> 8)) / 3);
     slb_width = (STL_PER_SLB * (long)stl_width) * box_width;
     slb_height = (STL_PER_SLB * (long)stl_width) * box_height;
     switch ( orient )
@@ -6427,11 +6426,6 @@ void draw_frontview_engine(struct Camera *cam)
         if ( ( (gameadd.place_traps_on_subtiles) && ((player->work_state == PSt_PlaceTrap) && (player->chosen_trap_kind != TngTrp_Boulder)) ) || ((player->work_state == PSt_Sell) && (is_key_pressed(KC_LSHIFT, KMod_DONTCARE))) )
         {
             BoxWidth /= 3;
-            BoxSubtile = true;
-        }
-        else
-        {
-            BoxSubtile = false;
         }
         create_frontview_map_volume_box(cam, BoxWidth);
     }
